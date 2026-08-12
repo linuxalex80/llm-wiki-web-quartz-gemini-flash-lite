@@ -1,0 +1,57 @@
+[providers.default]
+name = "custom"
+url = "https://generativelanguage.googleapis.com/v1beta/openai/"
+timeout = 300
+# api_key_env = "PROVIDER_API_KEY"  # or set that env var / store the key in ~/.config/synto/config.toml
+
+[models.fast]
+provider = "default"
+model = "models/gemini-flash-lite-latest"
+ctx = 8192                  # context window for fast model (tokens)
+
+[models.heavy]
+provider = "default"
+model = "models/gemini-flash-lite-latest"
+ctx = 32768                 # context window for heavy model (tokens)
+# Advanced (optional, hand-edit): temperature, think, [models.<role>.options] — see README
+# Split providers: add another [providers.<alias>] block and set this role's provider = "<alias>"
+
+[pipeline]
+auto_approve = false
+auto_commit = true
+auto_maintain = false
+watch_debounce = 3.0
+max_concepts_per_source = 8
+ingest_parallel = false   # true = parallel chunks
+# relation_extraction = false  # opt-in: adds a fast-model pass per ingest that extracts concept-to-concept relations
+article_max_tokens = 16384 # soft cap on generated tokens per article; auto-reduced to fit context
+concept_draft_soft_cap = 2400 # concept-driven compile only; set to "article_max_tokens" to disable extra capping (no effect on --legacy)
+# inline_source_citations = false  # Experimental: add inline source links
+# source_citation_style = "legend-only"  # legend-only | inline-wikilink
+# draft_media = "reference"  # reference | embed | omit
+graph_quality_checks = true
+# language = "en"  # ISO 639-1 output language; autodetects from notes if unset
+#
+# Per-source-type ingest overrides. Long-form types already default to a higher
+# concept-extraction ceiling (textbook 25, paper 15); everything else uses the
+# global max_concepts_per_source above. Set a block below only to change those.
+# Quality-based reduction (medium -> 4, low -> 2) still applies within the
+# ceiling, so the value only lifts the high-quality cap. Editing this only
+# affects newly-ingested sources; run `synto ingest --force` to re-apply it to
+# sources already ingested.
+#
+# [pipeline.source_overrides.textbook]
+# max_concepts_per_source = 25  # built-in default: 25
+#
+# [pipeline.source_overrides.paper]
+# max_concepts_per_source = 15  # built-in default: 15
+#
+# Known-and-accepted lint advisories to collapse in `synto maintain` output.
+# Entry is "<check>" (matches every path) or "<check>:<vault-relative-path>"
+# (matches only that path). Advisory checks only — structural issues (orphans,
+# broken links, ...) affect the health score and cannot be acked. Display-only —
+# health score and advisory count are unaffected; acked issues just print as a
+# single collapsed line.
+#
+# [maintain]
+# ack = ["stale_lock", "graph_noise:wiki/Imported Note.md"]
